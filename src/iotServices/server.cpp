@@ -4,7 +4,8 @@
 bool mul(ros_start::productFile::Request &req,
          ros_start::productFile::Response &res){
         
-        res.pro = req.num1 * req.num2;
+        //res.pro = req.num1 * req.num2;
+        
         return true;
 
         }

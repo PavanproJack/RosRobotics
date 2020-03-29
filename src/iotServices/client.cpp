@@ -10,7 +10,7 @@ int main(int argc, char **argv)
     ROS_INFO("usage: add_two_ints_client X Y");
     return 1;
   }
-
+  
   ros::NodeHandle n;
   ros::ServiceClient client = n.serviceClient<ros_start::productFile>("Multiply");
   ros_start::productFile srv;

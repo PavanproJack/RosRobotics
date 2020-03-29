@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ros_essentials_cpp
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime geometry_msgs 
   DEPENDS system_lib
 )
 
@@ -224,8 +225,6 @@ add_executable(iotsub src/iotDataComm_/subscriber.cpp)
 target_link_libraries(iotsub ${catkin_LIBRARIES})
 add_dependencies(iotsub ros_start_generate_messages_cpp)
 
-
-
 add_executable(productServer src/iotServices/server.cpp)
 target_link_libraries(productServer ${catkin_LIBRARIES})
 add_dependencies(productServer ros_start_generate_messages_cpp)
@@ -233,3 +232,7 @@ add_dependencies(productServer ros_start_generate_messages_cpp)
 add_executable(productClient src/iotServices/client.cpp)
 target_link_libraries(productClient ${catkin_LIBRARIES})
 add_dependencies(productClient ros_start_generate_messages_cpp)
+
+add_executable(motionBot src/turtlebotMotion/motionFile.cpp)
+target_link_libraries(motionBot ${catkin_LIBRARIES})
+add_dependencies(motionBot ros_start_generate_messages_cpp)
