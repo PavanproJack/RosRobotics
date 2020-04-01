@@ -6,67 +6,110 @@
 
 using namespace std;
 
-void moveForward(double speed, double distance, bool isForward);
-double deg2Rad(double deg);
-void rotate2Angle(double speed, double des, int clockwise);
+void moveForward();
+void rotate2Angle();
 double rad2Deg(double rad);
-//void print(sstream ss, double t);
-//double t0 = 0;
-double distance = 4;
-double curr_dist = 0;
-double speed = 1;
+double deg2Rad(double deg);
+void poseCallback(const turtlesim::Pose::ConstPtr &pose);
+
 const double pi = 3.14;
+double zSpeed, xSpeed;
+double angle_des, x_distance;
+int clockwise = 0;
+ 
 
 
 ros::Publisher pub;
 ros::Subscriber sub;
 turtlesim::Pose currentPose;
 
-void poseCallback(const turtlesim::Pose::ConstPtr &pose);
-
 
 int main(int argv, char **argc){
 
     ros::init(argv, argc, "motionBot");
     ros::NodeHandle n;
-    double angularSpeed;
-    double angle_des;
-    int clockwise;
     
+    /*    
     cout<<"Angular Speed : ";
     cin>> angularSpeed;
     cout<<"Desired AngDistance : ";
     cin>>angle_des;
     cout<<"Clockwise : ";
     cin>>clockwise;
-
-    //rotate2Angle(deg2Rad(angularSpeed), deg2Rad(angle_des));
-   // deg2Rad(angularSpeed);   deg2Rad(angle_des);
+    cout<<"xSpeed : ";
+    cin>> xSpeed;
+    cout<<"Desired Distance : ";
+    cin>>x_distance;
+    cout<<"Forward : ";
+    cin>>forward;*/
 
     pub = n.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 1000);
     sub = n.subscribe("/turtle1/pose", 10, poseCallback);
     try{
-        rotate2Angle( deg2Rad(angularSpeed) ,   deg2Rad(angle_des), clockwise);
+        //rotate2Angle();
+        moveForward();
     }catch(ros::Exception &e){
         ROS_ERROR("Ros error occured %s", e.what());
     }
-   
-  
     return 0;
-    
 }
 
-void rotate2Angle(double speed, double des, int clockwise){
+void moveForward(){
+    int forward;
+    ros::Rate loop_rate(100);
+    cout<<"xSpeed : ";
+    cin>> xSpeed;
+    cout<<"Desired Distance : ";
+    cin>>x_distance;
+    cout<<"Forward : ";
+    cin>>forward;
+       
+    geometry_msgs::Twist linearSpeed;
 
-    cout<<"Speed: " << speed << "Desired Anglular distance :" << des<< endl;
+    if(forward){
+        linearSpeed.linear.x = xSpeed;
+    }else{
+        linearSpeed.linear.x = -xSpeed;
+    }
+        
+    linearSpeed.linear.y = 0;
+    linearSpeed.linear.z = 0;
 
-     geometry_msgs::Twist velocity;
+    linearSpeed.angular.x = 0;
+    linearSpeed.angular.y = 0;
+    linearSpeed.angular.z = 0;
+
+    double t0 = ros::Time::now().toSec();
+    double distanceCovered = 0;
+        do{
+            pub.publish(linearSpeed);
+            double time = ros::Time::now().toSec() - t0;
+            distanceCovered = xSpeed * time;
+            cout<< "distanceCovered is : " << distanceCovered << endl;
+            ros::spinOnce();
+            loop_rate.sleep();
+            cout<< "pose is : "<< rad2Deg(currentPose.theta) << endl;
+         }while(distanceCovered < x_distance);
+        linearSpeed.linear.x = 0;
+        pub.publish(linearSpeed);
+
+}
+
+
+void rotate2Angle(){
+
+    //cout<<"Speed: " << speed << "Desired Anglular distance :" << des<< endl;
+    cout<<"Angular Speed : ";
+    cin>> zSpeed;
+    cout<<"Desired AngDistance : ";
+    cin>>angle_des;
+    cout<<"Clockwise : ";
+    cin>>clockwise;
+
+    zSpeed = deg2Rad(zSpeed);
+    angle_des = deg2Rad(angle_des);
      
-   // double diffAngle = des - currentPose.theta;
-   // cout<< "currentPose is : " << currentPose << endl;
-    //cout<< "diff angle  is : " << diffAngle << endl;
-   // print("Hello", 56);
-    //bool clockwise = ((diffAngle > 0) ? false : true);
+     geometry_msgs::Twist velocity;
 
         velocity.linear.x = 0;
         velocity.linear.y = 0;
@@ -76,31 +119,28 @@ void rotate2Angle(double speed, double des, int clockwise){
         velocity.angular.y = 0;
 
         if(clockwise){
-            velocity.angular.z = -speed;
+            velocity.angular.z = -zSpeed;
         }else{
-            velocity.angular.z = speed;
+            velocity.angular.z = zSpeed;
         }
-    // cout<< "Velocity is : " << velocity<<endl; 
     double angleCovered = 0.0;
     double t0 = ros::Time::now().toSec();
     double count = 0;
     ros::Rate loop_rate(100);
     try{
-           // pub.publish(velocity);
         do{
-
             pub.publish(velocity);
-            double diffAngle = des - angleCovered;
+            double diffAngle = angle_des - angleCovered;
             double time = ros::Time::now().toSec() - t0;
             //cout<< "diffAngele is : "<< diffAngle << endl;
             //curr_dist = abs(speed) * ( ros::Time::now().toSec() - t0 );
-            angleCovered = speed * time;
-            //cout<< "angleCovered is : " << angleCovered << endl;
+            angleCovered = zSpeed * time;
+            cout<< "angleCovered is : " << angleCovered << endl;
             ros::spinOnce();
             loop_rate.sleep();
             cout<< "pose is : "<< rad2Deg(currentPose.theta) << endl;
             //ros::Duration(2).sleep();
-        }while(angleCovered < des);
+        }while(angleCovered < angle_des);
         velocity.angular.z = 0;
         pub.publish(velocity);
 
@@ -110,15 +150,15 @@ void rotate2Angle(double speed, double des, int clockwise){
      
 }
 
+
 void poseCallback(const turtlesim::Pose::ConstPtr &pose){
    currentPose.theta  = pose->theta;
   // cout<< "pose is : "<< rad2Deg(currentPose.theta) << endl;
+   
 }
-
 double deg2Rad(double deg){
     return deg * pi / 180;
 }
-
 double rad2Deg(double rad){
     return rad * 180 / pi;
 }
